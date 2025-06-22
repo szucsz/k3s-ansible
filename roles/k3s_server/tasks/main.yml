@@ -269,6 +269,10 @@
         daemon_reload: true
         state: started
         enabled: true
+      register: k3s_service_status
+      until: k3s_service_status is succeeded
+      retries: 30
+      delay: 5
 
     - name: Verify that all server nodes joined
       when: not ansible_check_mode and (groups[server_group] | length) > 1
