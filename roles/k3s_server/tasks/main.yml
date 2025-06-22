@@ -276,7 +276,11 @@
         cmd: >
           k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
       register: nodes
-      until: nodes.rc == 0 and (nodes.stdout.split() | length) == (groups[server_group] | length)
+      until: >-
+        nodes.rc == 0 and
+        (nodes.stdout.split() | length) ==
+        ((groups[server_group] | map('extract', hostvars) | selectattr('etcd_only', 'undefined') | length) +
+         (groups[server_group] | map('extract', hostvars) | selectattr('etcd_only', 'defined') | selectattr('etcd_only', 'equalto', false) | length))
       retries: 20
       delay: 10
       changed_when: false
